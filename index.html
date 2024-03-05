@@ -1,0 +1,99 @@
+<!doctype html>
+<html>
+<head lang="en">
+    <title>Home Page</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+1&display=swap" rel="stylesheet">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <style type="text/css">
+	    	body{
+	    			margin: auto;
+			}
+		#top-strip{
+		    margin: auto;
+		    width: auto;
+		    height: 4rem;
+		    text-align: center;
+		    background: chocolate;
+		    font-family: 'M PLUS 1';
+		}
+		#test{
+		    text-align: center;
+		    height: 2rem;
+		}
+		#test>button{
+		    padding: 1rem;
+		    width: 25rem;
+		    outline: none;
+		    border: none;
+		}
+		#camera{
+		    display: flex;
+		    justify-content: inline;
+
+		}
+		#camera>video{
+		    padding: 1rem;
+		}
+		#canva{
+		    display: flex;
+		    justify-content: center;
+		    padding: 5rem;
+		}
+    </style>
+</head>
+    <body>
+        <div class="container">
+            <div id="top-strip">
+                <h1>Proctored Examination System</h1>
+            </div>
+            <div id="camera" >
+                <video id="video" width="320" height="240" autoplay></video>
+            </div>
+            <div id="test">
+                <button id="start-test">Start Test</button>
+            </div>
+            <div id="canva">
+                <canvas id="canvas" width="320" height="240"></canvas> 
+                <p id="stat"></p>
+            </div>
+        </div>
+        <script type="text/javascript">
+            
+            let camera_button = document.querySelector("#start-test");
+            let video = document.querySelector("#video");
+            let click_button = document.querySelector("#click-photo");
+            let canvas = document.querySelector("#canvas");
+
+            camera_button.addEventListener('click', async function() {
+                let stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                video.srcObject = stream;
+                
+                setInterval(()=>{
+                canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+                let image_data_url = canvas.toDataURL('image/jpeg');
+                evaluate(image_data_url);
+                },5000);
+            });
+            
+            evaluate=(img_url)=>{
+                
+                fetch('/predict',{
+                    method:'post',
+                    body:JSON.stringify({data:img_url}),
+                    headers:{
+                        'Content-Type':'application/json'
+                    }
+                })
+                .then(response=>response.text())
+                .then(resolve=>{
+                    document.getElementById('stat').innerHTML=resolve
+                })
+                .catch(err=>console.log(err));
+            }
+            
+        </script>
+    </body>
+</html>
